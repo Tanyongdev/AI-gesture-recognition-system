@@ -75,7 +75,7 @@ while True:
             get_angle(hand_keyPoints.landmark[17], hand_keyPoints.landmark[18], hand_keyPoints.landmark[20]) # pinky
         ]
 
-        finger_states = [1 if angle < 170 else 0 for angle in angles]
+        finger_states = [1 if angle < 155 else 0 for angle in angles]
 
         cnt = count_fingers(hand_keyPoints)
 
@@ -85,8 +85,9 @@ while True:
             if not(start_init):
                 start_time = time.time()
                 start_init = True
+            end_time = time.time()
 
-            elif (end_time-start_time) > 0.2:
+            if (end_time-start_time) > 0.2:
                 if (finger_states == [1, 0, 1, 1, 1]):
                     pyautogui.press("right") 
 
