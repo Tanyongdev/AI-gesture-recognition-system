@@ -45,8 +45,11 @@ hand_obj = hands.Hands(max_num_hands=1, min_detection_confidence=0.7, min_tracki
 
 
 start_init = False 
-
 prev = None
+
+tap_interval = 0.5        # เวลาระหว่างการ tap แต่ละครั้ง
+last_tap_time = 0         # เวลาที่ tap ล่าสุด
+alt_holding = False       # ตอนนี้ Alt ถูกกดค้างอยู่ไหม
 
 while True:
     end_time = time.time()
@@ -85,9 +88,8 @@ while True:
             if not(start_init):
                 start_time = time.time()
                 start_init = True
-            end_time = time.time()
 
-            if (end_time-start_time) > 0.2:
+            elif (end_time-start_time) > 0.2:
                 if (finger_states == [1, 0, 1, 1, 1]):
                     pyautogui.press("right") 
 
@@ -103,6 +105,26 @@ while True:
                 elif (finger_states == [0, 0, 0, 0, 0]):
                     pyautogui.press("space")
 
+                elif (finger_states == [0, 0, 0, 1, 1]):
+                     #  Alt + Tab
+                  if not alt_holding:
+                    # 👉 ครั้งแรกที่เข้า gesture                             
+                    pyautogui.keyDown("alt")     # กด Alt ค้าง
+                    pyautogui.press("tab")       # Tab ครั้งแรก           
+                    alt_holding = True
+                    last_tap_time = end_time
+
+                elif  (finger_states == [0, 0, 1, 1, 1] and alt_holding):
+                    if end_time - last_tap_time > tap_interval:
+                        pyautogui.press("tab")     # กด Tab
+                        last_tap_time = end_time  
+            # 👉 ออกจาก gesture → ปล่อย Alt
+            if finger_states != [0, 0, 0, 1, 1] and finger_states != [0, 0, 1, 1, 1]:
+                if alt_holding:
+                    pyautogui.keyUp("alt")
+                    alt_holding = False
+                    start_init = False
+        else:
                 prev = finger_states
                 start_init = False
                 print(finger_states)
@@ -111,7 +133,7 @@ while True:
         
 
 
-        drawing.draw_landmarks(frm, hand_keyPoints, hands.HAND_CONNECTIONS)
+        drawing.draw_landmarks(frm, hand_keyPoints, hands.HAND_CONNECTIONS)   
 
     cv2.imshow("window", frm)
 
