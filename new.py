@@ -108,7 +108,7 @@ while True:
                 elif (finger_states == [0, 0, 0, 1, 1]):
                      #  Alt + Tab
                   if not alt_holding:
-                    # 👉 ครั้งแรกที่เข้า gesture                             
+                    #  ครั้งแรกที่เข้า gesture                             
                     pyautogui.keyDown("alt")     # กด Alt ค้าง
                     pyautogui.press("tab")       # Tab ครั้งแรก           
                     alt_holding = True
@@ -118,7 +118,7 @@ while True:
                     if end_time - last_tap_time > tap_interval:
                         pyautogui.press("tab")     # กด Tab
                         last_tap_time = end_time  
-            # 👉 ออกจาก gesture → ปล่อย Alt
+            #  ออกจาก gesture → ปล่อย Alt
             if finger_states != [0, 0, 0, 1, 1] and finger_states != [0, 0, 1, 1, 1]:
                 if alt_holding:
                     pyautogui.keyUp("alt")
