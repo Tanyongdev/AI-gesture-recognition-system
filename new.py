@@ -45,18 +45,21 @@ hand_obj = hands.Hands(max_num_hands=1, min_detection_confidence=0.7, min_tracki
 
 
 start_init = False 
-# prev_state = None
 prev = None
 state = None
 
 last_right = 0
+tap_last_right = 0.5 
 last_left = 0
+tap_last_left = 0.5
 last_up = 0
+tap_last_up = 0.7
 last_down = 0
+tap_last_down = 0.7
 last_space = 0
-
-tap_interval = 0.5        # เวลาระหว่างการ tap แต่ละครั้ง
+tap_last_spacel =0.5
 last_tap_time = 0         # เวลาที่ tap ล่าสุด
+tap_interval = 0.5        # เวลาระหว่างการ tap แต่ละครั้ง
 alt_holding = False       # ตอนนี้ Alt ถูกกดค้างอยู่ไหม
 
 while True:
@@ -96,7 +99,7 @@ while True:
             start_init = True
 
         elif (end_time-start_time) > 0.2:
-                if finger_states != [0,   0, 0, 1, 1] and finger_states != [0, 0, 1, 1, 1] and alt_holding:
+                if finger_states != [0, 0, 0, 1, 1] and finger_states != [0, 0, 1, 1, 1] and alt_holding:
                     state = "Exit_Alt+tap" 
                 elif (finger_states == [1, 0, 1, 1, 1]):
                     state = "RIGHT"
@@ -127,31 +130,31 @@ while True:
 
         if (state != "None"):    
             if state == "RIGHT":
-                    if time.time() - last_right > 0.5:
+                    if time.time() - last_right > tap_last_right:
                         pyautogui.press("right")
                         last_right = time.time()
                     state = "None"
                     start_init = False
             elif state == "LEFT":
-                    if time.time() - last_left > 0.5:
+                    if time.time() - last_left > tap_last_left:
                         pyautogui.press("left")
                         last_left = time.time()
                     state = "None"
                     start_init = False
             elif state == "UP":
-                    if time.time() - last_up > 0.7:
+                    if time.time() - last_up > tap_last_up:
                         pyautogui.press("up")
                         last_up = time.time()
                     state = "None"
                     start_init = False
             elif state == "DOWN":
-                    if time.time() - last_down > 0.7:
+                    if time.time() - last_down > tap_last_down:
                         pyautogui.press("down")
                         last_down = time.time()
                     state = "None"
                     start_init = False
             elif state == "SPACE":
-                    if time.time() - last_space > 0.5:
+                    if time.time() - last_space > tap_last_spacel:
                         pyautogui.press("space")
                         last_space = time.time()
                     state = "None"
