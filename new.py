@@ -45,7 +45,15 @@ hand_obj = hands.Hands(max_num_hands=1, min_detection_confidence=0.7, min_tracki
 
 
 start_init = False 
+# prev_state = None
 prev = None
+state = None
+
+last_right = 0
+last_left = 0
+last_up = 0
+last_down = 0
+last_space = 0
 
 tap_interval = 0.5        # เวลาระหว่างการ tap แต่ละครั้ง
 last_tap_time = 0         # เวลาที่ tap ล่าสุด
@@ -77,62 +85,99 @@ while True:
             get_angle(hand_keyPoints.landmark[13], hand_keyPoints.landmark[14], hand_keyPoints.landmark[16]),# ring
             get_angle(hand_keyPoints.landmark[17], hand_keyPoints.landmark[18], hand_keyPoints.landmark[20]) # pinky
         ]
-
+ 
         finger_states = [1 if angle < 155 else 0 for angle in angles]
 
         cnt = count_fingers(hand_keyPoints)
 
 
-        
-        if not(prev == finger_states):
-            if not(start_init):
-                start_time = time.time()
-                start_init = True
+        if not(start_init):
+            start_time = time.time()
+            start_init = True
 
-            elif (end_time-start_time) > 0.2:
-                if (finger_states == [1, 0, 1, 1, 1]):
-                    pyautogui.press("right") 
+        elif (end_time-start_time) > 0.2:
+                if finger_states != [0,   0, 0, 1, 1] and finger_states != [0, 0, 1, 1, 1] and alt_holding:
+                    state = "Exit_Alt+tap" 
+                elif (finger_states == [1, 0, 1, 1, 1]):
+                    state = "RIGHT"
 
                 elif (finger_states == [1, 0, 0, 1, 1]):
-                    pyautogui.press("left")
+                    state = "LEFT"
 
                 elif (finger_states == [0, 1, 1, 1, 1]):
-                    pyautogui.press("up")
+                    state = "UP"
 
                 elif (finger_states == [1, 1, 1, 1, 1]):
-                    pyautogui.press("down")
+                    state = "DOWN"
 
                 elif (finger_states == [0, 0, 0, 0, 0]):
-                    pyautogui.press("space")
-
+                    state = "SPACE"                    
+                #  Alt + Tab
                 elif (finger_states == [0, 0, 0, 1, 1]):
-                     #  Alt + Tab
-                  if not alt_holding:
-                    #  ครั้งแรกที่เข้า gesture                             
-                    pyautogui.keyDown("alt")     # กด Alt ค้าง
-                    pyautogui.press("tab")       # Tab ครั้งแรก           
-                    alt_holding = True
-                    last_tap_time = end_time
+                        # ครั้งแรกที่เข้า gesture                             
+                    state = "Alt+tap" 
 
                 elif  (finger_states == [0, 0, 1, 1, 1] and alt_holding):
-                    if end_time - last_tap_time > tap_interval:
-                        pyautogui.press("tab")     # กด Tab
-                        last_tap_time = end_time  
-            #  ออกจาก gesture → ปล่อย Alt
-            if finger_states != [0, 0, 0, 1, 1] and finger_states != [0, 0, 1, 1, 1]:
-                if alt_holding:
-                    pyautogui.keyUp("alt")
-                    alt_holding = False
-                    start_init = False
+                    state = "Pass_tap"  
+                #  ออกจาก gesture → ปล่อย Alt
+
         else:
-                prev = finger_states
-                start_init = False
-                print(finger_states)
+            prev = finger_states
+            state = "None"     
 
+        if (state != "None"):    
+            if state == "RIGHT":
+                    if time.time() - last_right > 0.5:
+                        pyautogui.press("right")
+                        last_right = time.time()
+                    state = "None"
+                    start_init = False
+            elif state == "LEFT":
+                    if time.time() - last_left > 0.5:
+                        pyautogui.press("left")
+                        last_left = time.time()
+                    state = "None"
+                    start_init = False
+            elif state == "UP":
+                    if time.time() - last_up > 0.7:
+                        pyautogui.press("up")
+                        last_up = time.time()
+                    state = "None"
+                    start_init = False
+            elif state == "DOWN":
+                    if time.time() - last_down > 0.7:
+                        pyautogui.press("down")
+                        last_down = time.time()
+                    state = "None"
+                    start_init = False
+            elif state == "SPACE":
+                    if time.time() - last_space > 0.5:
+                        pyautogui.press("space")
+                        last_space = time.time()
+                    state = "None"
+                    start_init = False
+            elif state == "Alt+tap":
+                if not alt_holding:
+                    # ครั้งแรกที่เข้า gesture                             
+                    pyautogui.keyDown("alt")     # กด Alt ค้าง
+                    pyautogui.press("tab") 
+                    alt_holding = True      # Tab ครั้งแรก         
+                    last_tap_time = time.time()
+                state = "None"
+            elif state == "Pass_tap":
+                    if time.time() - last_tap_time > tap_interval:
+                        pyautogui.press("tab")     # กด Tab
+                        last_tap_time = time.time()
+                    state = "None"
+            elif state == "Exit_Alt+tap":
+                    if alt_holding:
+                        pyautogui.keyUp("alt")
+                        alt_holding = False
+                        start_init = False
+                    state = "None"
+                 
 
-        
-
-
+        print(finger_states)
         drawing.draw_landmarks(frm, hand_keyPoints, hands.HAND_CONNECTIONS)   
 
     cv2.imshow("window", frm)
